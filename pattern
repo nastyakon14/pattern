@@ -1,0 +1,55 @@
+import os
+import shutil
+from tkinter import filedialog, Tk
+
+# функция для создания папки, если ее не существует
+def create_folder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+# функция для перемещения файла в папку
+def move_file(file_path, folder_path):
+    shutil.move(file_path, folder_path)
+
+# функция для получения названия отдела из имени файла
+def get_department_name(file_name):
+    name_parts = file_name.split('_')
+    if len(name_parts) > 1:
+        return name_parts[0]
+    else:
+        return None
+
+# функция для обработки папки с файлами
+def process_folder(folder_path):
+    # создаем папку "Прочее", если она не существует
+    create_folder(os.path.join(folder_path, 'Прочее'))
+
+    # проходим по всем файлам в папке
+    file_count = 0
+    for file_name in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            # получаем название отдела из имени файла
+            department_name = get_department_name(file_name)
+
+            # создаем папку отдела, если она не существует
+            if department_name:
+                department_path = os.path.join(folder_path, department_name)
+                create_folder(department_path)
+            else:
+                department_path = os.path.join(folder_path, 'Прочее')
+
+            # перемещаем файл в соответствующую папку отдела
+            move_file(file_path, department_path)
+
+            file_count += 1
+
+    print(f'Обработано файлов: {file_count}')
+
+# создаем графический интерфейс для выбора папки
+root = Tk()
+root.withdraw()
+folder_path = filedialog.askdirectory(title='Выберите папку с файлами')
+
+# обрабатываем папку с файлами
+process_folder(folder_path)
