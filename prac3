@@ -1,0 +1,232 @@
+#1 источник, IMDB
+
+from urllib.request import urlopen
+import numpy as np
+import pandas as pd
+from urllib.request import urlopen
+from lxml import etree
+url = 'https://www.imdb.com/title/tt0117060/reviews?ref_=tt_sa_3'
+page = urlopen(url)
+#print(page.read().decode('utf-8'))
+html_code = page.read().decode('utf-8')
+
+a = []
+tree = etree.HTML(html_code)
+print(tree.xpath('//*[@id="main"]/section/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/span/span[1]/text()')[0])
+grade = int(tree.xpath('//*[@id="main"]/section/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/span/span[1]/text()')[0])
+
+c = '//*[@id="main"]/section/div[2]/div[2]/div[9]/div[1]/div[1]/div[1]/span/span[1]/text()'
+for i in range(9,19):
+    d = i+1
+    a +=(tree.xpath(c)[0])
+    c = c.replace(str(i),str(d))
+
+for i in range(len(a)):
+    a[i] = int(a[i])
+
+np.mean(a)
+
+a
+
+url = 'https://www.imdb.com/title/tt13443470/reviews?ref_=tt_sa_3'
+page = urlopen(url)
+#print(page.read().decode('utf-8'))
+html_code = page.read().decode('utf-8')
+
+a = []
+tree = etree.HTML(html_code)
+print(tree.xpath('//*[@id="main"]/section/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/span/span[1]/text()')[0])
+grade = int(tree.xpath('//*[@id="main"]/section/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/span/span[1]/text()')[0])
+
+df = pd.DataFrame(columns=['Name','URL','Mean','Max','Min', 'Reviews']) #создание датафрейсма всё до этого просто пробники
+df
+
+def midgrad(df,url): #функция подсчёта данных с сайта и добавления их в датафрейм
+    page = urlopen(url)
+    html_code = page.read().decode('utf-8')
+    a = []
+    tree = etree.HTML(html_code)
+    d = tree.xpath('//*[@id="main"]/section/div[2]/div[1]/div/span/text()')[0].replace(',','')
+    d = [int(s) for s in d.split() if s.isdigit()]
+    c = '//*[@id="main"]/section/div[2]/div[2]/div[3]/div/div[1]/div[1]/span/span[1]/text()'
+    for i in range(3,d[0]):
+        d = i+1
+        a +=(tree.xpath(c))
+        c = c.replace(str(i),str(d))
+    for i in range(len(a)):
+        a[i] = int(a[i])
+
+    df1 = pd.DataFrame({'Name':[(tree.xpath('//*[@id="main"]/section/div[1]/div/div/h3/a/text()')[0])],'URL':[url],'Mean':[np.mean(a).round(2)], 'Max':[np.max(a)], 'Min':[np.min(a)], 'Reviews':[d]})
+    df = pd.concat([df, df1])
+    df = df.reset_index(drop=True)
+    return df
+
+url = 'https://www.imdb.com/title/tt0117060/reviews?ref_=tt_sa_3'
+df = midgrad(df, url)
+df
+
+url = 'https://www.imdb.com/title/tt13443470/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+
+url = 'https://www.imdb.com/title/tt10048342/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt4912910/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt0120755/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt0458525/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt0120611/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt1745960/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+url = 'https://www.imdb.com/title/tt8574252/reviews?ref_=tt_sa_3'
+df = midgrad(df,url)
+df
+
+#2 Источник DreamJob
+
+
+dfjob = pd.DataFrame(columns=['Name','URL','Mean','Max','Min', 'Reviews'])
+dfjob
+
+def midjob(df,url):
+    page = urlopen(url)
+    html_code = page.read().decode('utf-8')
+    a = []
+    tree = etree.HTML(html_code)
+    d = int(tree.xpath('/html/body/div[2]/div/div/a[2]/span[2]/text()')[0].replace(' ',''))
+    c = '//*[@id="barracuda"]/div[3]/span/text()'
+    rat = '/html/body/main/div[3]/div[1]/div[1]/div[1]/div[3]//@id'
+    for i in range(1,d):
+        rat = rat[:51] + 'div['+str(i) +']' + rat[51:]
+        if len(tree.xpath(rat))>0:
+            rating = tree.xpath(rat)[0]
+            c = c.replace('barracuda', rating)
+            if len(tree.xpath(c))>0:
+                a.append(int(tree.xpath(c)[0].replace(' ','').replace('\n','').replace(',','.')[0]))
+            c = c.replace(rating, 'barracuda')
+        rat = '/html/body/main/div[3]/div[1]/div[1]/div[1]/div[3]//@id'
+
+    df1 = pd.DataFrame({'Name':[(tree.xpath('/html/body/div[1]/div[2]/div/div/div/div[1]/div/div[1]/text()')[0].replace('\n', '').replace('Работа в ',''))],'URL':[url],'Mean':[np.mean(a).round(2)], 'Max':[np.max(a)], 'Min':[np.min(a)], 'Reviews':[d]})
+    df = pd.concat([df, df1])
+    df = df.reset_index(drop=True)
+    return df
+
+url = 'https://dreamjob.ru/employers/130536'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25607'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25596'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25903'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/26069'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/104895'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/26029'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25946'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25947'
+dfjob = midjob(dfjob,url)
+dfjob
+
+url = 'https://dreamjob.ru/employers/25930'
+dfjob = midjob(dfjob,url)
+dfjob
+
+#3 Источник IGN
+
+dfgame = pd.DataFrame(columns=['Name','URL','Mean','Max','Min'])
+dfgame
+
+from urllib.request import urlopen
+import numpy as np
+def midsport(df, url):
+    page = urlopen(url)
+    html_code = page.read().decode('utf-8')
+    a = []
+    tree = etree.HTML(html_code)
+    c = '//*[@id="main-content"]/div[3]/section[1]/div/div/div[3]/div[2]/barracuda/div[3]/div/text()'
+    for i in range(1,8):
+        c = c.replace('barracuda','figure['+str(i)+']')
+        a +=(tree.xpath(c))
+        c = c.replace('figure['+str(i)+']','barracuda')
+    for i in range(len(a)):
+        a[i] = int(a[i])
+
+    df1 = pd.DataFrame({'Name':[(tree.xpath('//*[@id="main-content"]/div[1]/section/div/div[2]/h1/text()')[0])],'URL':[url],'Mean':[np.mean(a).round(2)], 'Max':[np.max(a)], 'Min':[np.min(a)]})
+    df = pd.concat([df, df1])
+    df = df.reset_index(drop=True)
+    return df
+
+url = 'https://www.ign.com/games/destiny-2-lightfall'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/resident-evil-4'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/atomic-heart'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/counter-strike-global-offensive'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/god-of-war-ragnarok'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/minecraft'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/fifa-23'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/nba-2k23-next-gen-version'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/forza-horizon-5'
+dfgame = midsport(dfgame,url)
+dfgame
+
+url = 'https://www.ign.com/games/ratatouille'
+dfgame = midsport(dfgame,url)
+dfgame
+
